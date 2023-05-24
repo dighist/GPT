@@ -2,8 +2,12 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 import torch
 import docx
+from PyPDF2 import PdfReader, PdfFileWriter
+
+import openai
 
 TOKENIZERS_PARALLELISM=False
+
 
 
 tokenizer = AutoTokenizer.from_pretrained(
@@ -15,10 +19,13 @@ model = AutoModelForSequenceClassification.from_pretrained(
 def remove_special_characters(text: str):
     text = text.replace('\t', " ")
     text = text.replace('/', "")
-    text = text.replace("§", " ")
+    # text = text.replace("§", " ")
     return text
 
 def split_text(text: str) -> list[str]:
+    """
+    Handles line breaks, and cleans the text like that. 
+    """
     sections = text.split("\n")
 
     def handle_line_breaks():
@@ -77,3 +84,21 @@ def readDocument(filename):
 def processText(filename):
     raw_text = readDocument(filename)
     return get_german_sentences(raw_text)
+
+#1- Tried getting german sentences directly from the text. The problem is that Czech and German get micex, might be hard to bring them back together
+def get_paragraphs(filename:str)->list[list[str]]:
+    german_sentences = processText(filename)
+    return german_sentences
+
+
+
+def get_first_page(filepath:str):
+    """
+    Parses the first page of the document, for extraction
+    """
+    reader = PdfReader(filepath)
+    page = reader.pages[0]
+    text = page.extract_text()
+    return text
+
+        

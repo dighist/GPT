@@ -5,28 +5,18 @@ import requests
 import tiktoken
 from helpers import get_german_sentences
 from helpers import readDocument
-KEY = "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"
+import json
+
+#Initializing API keys
+KEY = ""
+with open("../keys.json", 'r') as keys:
+    json_data = json.load(keys)
+    KEY = json_data['API_KEY']
 openai.api_key = KEY
-TOKENIZERS_PARALLELISM=False
+TOKENIZERS_PARALLELISM = False
 
+# Helper functions, not used for now
 
-# def callAPI(text):
-    
-#     prompt = text +\
-#         "Q: Create a JSON file in English about the law announcement above that has the fields:\
-#     {'Specific dates': {'date','explanation'},\
-#     'Signatory of the document':{'signatory', 'details'}, \
-#     'Number of announcement',\
-#     'Institution enforcing announcement',\
-#     'Content': Here, give a summary of the document in English,\
-#     'Official action'}\
-#     A:"
-#     response = openai.Completion.create(
-#         model="text-davinci-003",
-#         prompt=prompt,
-#         temperature=0.5
-#     )
-#     return response
 
 # Function to split the text into chunks of a maximum number of tokens
 def split_into_many(text, max_tokens=200):
@@ -68,7 +58,6 @@ def split_into_many(text, max_tokens=200):
     if chunk:
         chunks.append(". ".join(chunk) + ".")
 
-   
     return chunks
 
 
@@ -85,17 +74,16 @@ def create_context(
     Create a context for a question by finding the most similar context from the dataframe
     """
 
-    #Create chunks for which creating embedding would be easier
+    # Create chunks for which creating embedding would be easier
     chunks = split_into_many(text)
 
-    #Creating holder for chunks and embeddings
+    # Creating holder for chunks and embeddings
     dic = {}
     i = 0
     for chunk in chunks:
         dic[i] = {}
         dic[i]['text'] = chunk
-        i+=1
-        
+        i += 1
 
     # Get the embeddings for the question
     q_embeddings = createEmbedding(question)
@@ -104,14 +92,14 @@ def create_context(
         chunk_text = holder['text']
         embedding = createEmbedding(chunk_text)
         holder['embedding'] = embedding
-        distances[index] =distances_from_embeddings(
-        q_embeddings, [embedding], distance_metric='cosine')[0]
+        distances[index] = distances_from_embeddings(
+            q_embeddings, [embedding], distance_metric='cosine')[0]
 
     # Get the distances from the embeddings
     returns = []
     cur_len = 0
-    distances = dict(sorted(distances.items(), key=lambda x:x[1]))
-    print("DISTANCES SORTED", distances)
+    distances = dict(sorted(distances.items(), key=lambda x: x[1]))
+    # print("DISTANCES SORTED", distances)
     # Sort by distance and add the text to the context until the context is too long
     for i, distance in distances.items():
 
@@ -119,8 +107,8 @@ def create_context(
         tokenizer = tiktoken.get_encoding("cl100k_base")
         # Get the number of tokens for each sentence
         n_tokens = len(tokenizer.encode(dic[i]['text']))
-    
-        cur_len += n_tokens+ 4
+
+        cur_len += n_tokens + 4
 
         # If the context is too long, break
         if cur_len > max_len:
@@ -128,9 +116,10 @@ def create_context(
 
         # Else add it to the text that is being returned
         returns.append(dic[i]['text'])
-    print("CONTEXT LENGTH", cur_len)
+    # print("CONTEXT LENGTH", cur_len)
     # Return the context
     return "\n\n###\n\n".join(returns)
+
 
 def answer_question(
     text,
@@ -161,7 +150,7 @@ def answer_question(
         # response = openai.Completion.create(
         #     prompt=f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:",
         #     temperature=0.5,
-        #     # top_p=1, 
+        #     # top_p=1,
         #     frequency_penalty=0,
         #     presence_penalty=0,
         #     stop=stop_sequence,
@@ -169,46 +158,21 @@ def answer_question(
         # )
         # return response["choices"][0]["text"].strip()
 
-#English question: Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:
+        # English question: Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:
         response = openai.ChatCompletion.create(
-        messages =[
-            {"role":"user", "content":f"Beantworten Sie die Frage anhand des nachstehenden Kontextes, und wenn die Frage anhand des Kontextes nicht beantwortet werden kann, sagen Sie \"Ich weiß es nicht\"\n\nKontext: {context}\n\n---\n\nFrage: {question}\nAntwort:"}
-        ],
-        # prompt=f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:",
-        # temperature=0,
-        # top_p=1,
-        # frequency_penalty=0,
-        # presence_penalty=0,
-        # stop=stop_sequence,
-        model="gpt-3.5-turbo",
-    )
+            messages=[
+                {"role": "user", "content": f"Beantworten Sie die Frage anhand des nachstehenden Kontextes, und wenn die Frage anhand des Kontextes nicht beantwortet werden kann, sagen Sie \"Ich weiß es nicht\"\n\nKontext: {context}\n\n---\n\nFrage: {question}\nAntwort:"}
+            ],
+            # prompt=f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:",
+            # temperature=0,
+            # top_p=1,
+            # frequency_penalty=0,
+            # presence_penalty=0,
+            # stop=stop_sequence,
+            model="gpt-3.5-turbo",
+        )
         print(response)
         return response['choices'][0]['message']['content'].strip()
     except Exception as e:
         print(e)
         return ""
-
-
-# if __name__ == "__main__":
-#     sentences = readDocument("documents/13-x.docx")
-#     # print(sentences)
-#     german = get_german_sentences(sentences)
-#     print(german)
-#     prompt = ".".join(german) +\
-#     "Q: Create a JSON file in English about the law announcement above that has the fields:\
-#     {'Specific dates': {'date','explanation'},\
-#     'Signatory of the document':{'signatory', 'details'}, \
-#     'Number of announcement',\
-#     'Institution enforcing announcement',\
-#     'Content': Here, give a summary of the document in English,\
-#     'Official action'}\
-#     A:"
-
-#     response = openai.Completion.create(
-#     model="text-davinci-003",
-#     prompt=prompt,
-#     temperature=0.5
-#     )
-
-
-#     print(response)
