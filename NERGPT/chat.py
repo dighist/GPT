@@ -6,10 +6,14 @@ import helpers as helpers
 
 # Initializing API keys
 KEY = ""
-with open("../keys.json", 'r') as keys:
-    json_data = json.load(keys)
-    KEY = json_data['API_KEY']
-openai.api_key = KEY
+try:
+    with open("../keys.json", 'r') as keys:
+        json_data = json.load(keys)
+        KEY = json_data['API_KEY']
+    openai.api_key = KEY
+except:
+    raise Exception("Add a API key as described in the README.md")
+
 
 MODEL = "gpt-3.5-turbo"
 DOCUMENTS_DIRECTORY = "../test"
