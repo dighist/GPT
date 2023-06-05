@@ -1,6 +1,6 @@
 # Using GPT for digital History
 
-The goal of this repository is to support the digital history aiming at digitalizing some documents from the Kladno archive in the Czech Republic. The repository contains code that allows historical documents to be analyzed using OpenAI gpt-3.5-turbo model. The code works as follows.
+The goal of this repository is to support the digital history project aiming at digitalizing some documents from the Kladno archive in the Czech Republic. The repository contains code that allows historical documents to be analyzed using OpenAI gpt-3.5-turbo model. The code works as follows.
 
 1. helpers.py contains different functions aimed at extracting text from documents (either in txt or pdf format)
 2. chat.py allows to make the API request to the OpenAI API. 

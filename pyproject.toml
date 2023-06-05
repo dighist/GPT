@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "nergpt"
+version = "0.1.0"
+description = "Support the digital history project aiming at digitalizing some documents from the Kladno archive in the Czech Republic"
+authors = ["Jean Ghislain Billa <jbilla@mit.edu>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+openai = "^0.27.7"
+tiktoken = "^0.4.0"
+transformers = "^4.29.2"
+torch = "^2.0.1"
+PyPDF2 = "^3.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

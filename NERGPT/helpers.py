@@ -1,10 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 import torch
-import docx
 from PyPDF2 import PdfReader, PdfFileWriter
-
-import openai
 import re
 
 TOKENIZERS_PARALLELISM = False
